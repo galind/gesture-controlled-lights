@@ -20,7 +20,7 @@ def finger_count(lm_list: list):
 
 
 def history_check(history: list):
-    if len(history) < 5:
+    if len(history) < 10:
         return False
     first_element = history[0]
     return all(result == first_element for result in history)
@@ -38,7 +38,7 @@ def send_notification(action: int):
 
 def main():
     cap = cv2.VideoCapture(0)
-    tracker = HandTracker(max_hands=1)
+    tracker = HandTracker(max_hands=1, detection_conf=0.85, tracking_conf=0.85)
     history = []
 
     while True:
@@ -53,7 +53,8 @@ def main():
         history.append(up_count)
         result = history_check(history)
 
-        if result and up_count != 0:
+        valid_actions = [1, 2, 3]
+        if result and up_count in valid_actions:
             send_notification(up_count)
 
             if up_count == 1:
@@ -69,7 +70,7 @@ def main():
 
             cv2.waitKey(15000)
 
-        if len(history) > 5:
+        if len(history) > 10:
             history.pop(0)
 
         text = f'Fingers up: {str(up_count)}'
@@ -79,7 +80,7 @@ def main():
         cv2.putText(image, text, org, font, 3, color, 2)
 
         cv2.imshow('Output', image)
-        cv2.waitKey(500)
+        cv2.waitKey(300)
 
 
 if __name__ == '__main__':

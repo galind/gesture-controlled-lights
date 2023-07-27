@@ -63,10 +63,6 @@ def main():
                 pass
             elif up_count == 3:
                 pass
-            elif up_count == 4:
-                pass
-            elif up_count == 5:
-                pass
 
             cv2.waitKey(15000)
 

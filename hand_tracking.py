@@ -3,7 +3,7 @@ from cv2 import COLOR_BGR2RGB
 from mediapipe.python.solutions import drawing_utils, hands
 
 
-class HandTracker():
+class HandTracker:
     def __init__(
         self,
         image_mode: bool = False,
@@ -19,9 +19,9 @@ class HandTracker():
 
     def hands_finder(self, image, draw: bool = True):
         image_rgb = cv2.cvtColor(image, COLOR_BGR2RGB)
-        self.results = self.hands.process(image_rgb)
+        results = self.hands.process(image_rgb)
 
-        self.landmarks = self.results.multi_hand_landmarks
+        self.landmarks = results.multi_hand_landmarks
         if self.landmarks:
             for hand_lms in self.landmarks:
                 if draw:

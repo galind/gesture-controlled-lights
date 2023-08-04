@@ -1,8 +1,16 @@
+import asyncio
 import os
 
 import cv2
+from kasa import SmartBulb, Discover
 
 from hand_tracking import HandTracker
+
+
+async def bulb_connection():
+    bulb = SmartBulb('192.168.1.52')
+    await bulb.update()
+    return bulb
 
 
 def finger_count(lm_list: list):
@@ -27,7 +35,7 @@ def history_check(history: list):
 
 
 def send_notification(action: int):
-    message = 'Sleeping for 15 seconds...'
+    message = 'Sleeping for 5 seconds...'
     title = 'Gesture Controlled Lights'
     subtitle = f'Action {action} has been received!'
     content = 'display notification "{}" with title "{}" subtitle "{}"'.format(
@@ -36,7 +44,51 @@ def send_notification(action: int):
     os.system(f'osascript -e \'{content}\'')
 
 
+async def task_one(bulb: SmartBulb):
+    await bulb.update()
+
+    status = bulb.is_on
+    color = bulb.color_temp
+    brightness = bulb.brightness
+
+    if not status:
+        await bulb.turn_on()
+
+    if color != 6500:
+        await bulb.set_color_temp(6500)
+
+    if brightness != 80:
+        await bulb.set_brightness(80)
+
+
+async def task_two(bulb: SmartBulb):
+    await bulb.update()
+
+    status = bulb.is_on
+    color = bulb.color_temp
+    brightness = bulb.brightness
+
+    if not status:
+        await bulb.turn_on()
+
+    if color != 5000:
+        await bulb.set_color_temp(5000)
+
+    if brightness != 50:
+        await bulb.set_brightness(50)
+
+
+async def task_three(bulb: SmartBulb):
+    await bulb.update()
+    status = bulb.is_on
+    if status:
+        await bulb.turn_off()
+
+
 def main():
+    bulb = asyncio.run(bulb_connection())
+    print(bulb)
+
     cap = cv2.VideoCapture(0)
     tracker = HandTracker(max_hands=1, detection_conf=0.85, tracking_conf=0.85)
     history = []
@@ -58,25 +110,31 @@ def main():
             send_notification(up_count)
 
             if up_count == 1:
-                pass
+                asyncio.run(task_one(bulb))
             elif up_count == 2:
-                pass
+                asyncio.run(task_two(bulb))
             elif up_count == 3:
-                pass
+                asyncio.run(task_three(bulb))
 
-            cv2.waitKey(15000)
+            history = []
 
         if len(history) > 10:
             history.pop(0)
 
-        text = f'Fingers up: {str(up_count)}'
-        org = (15, 85)
         font = cv2.FONT_HERSHEY_TRIPLEX
         color = (255, 255, 255)
+
+        org = (15, 180)
+        formatted_history = ', '.join([str(h) for h in history])
+        text = f'History: {formatted_history}'
+        cv2.putText(image, text, org, font, 3, color, 2)
+
+        org = (15, 85)
+        text = f'Fingers up: {str(up_count)}'
         cv2.putText(image, text, org, font, 3, color, 2)
 
         cv2.imshow('Output', image)
-        cv2.waitKey(300)
+        cv2.waitKey(75)
 
 
 if __name__ == '__main__':

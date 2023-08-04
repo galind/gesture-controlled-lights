@@ -2,7 +2,7 @@ import asyncio
 import os
 
 import cv2
-from kasa import SmartBulb, Discover
+from kasa import SmartBulb
 
 from hand_tracking import HandTracker
 
